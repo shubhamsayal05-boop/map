@@ -446,19 +446,21 @@ End Function
 
 ' Evaluate status using AVL, P1 color and bench difference
 Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double, targetVal As Double, testedVal As Double) As String
-    ' Updated benchmark logic per request:
+    ' Updated evaluation logic:
+    ' - If benchmark data missing (benchDiff = 999), evaluate based on AVL and P1 only
     ' - If tested > target => GREEN (better than benchmark)
     ' - If tested <= target: Target - Tested > 2 => YELLOW else GREEN
-    ' Other criteria unchanged:
     ' - If avl < 7 Or p1 = RED => RED
     ' - If avl >= 7 And p1 = YELLOW => YELLOW
-    ' - Missing or NA values => blank
+    ' - Only return blank/N/A if P1 is N/A (no data to evaluate)
 
-    If UCase(Trim(p1)) = "N/A" Or benchDiff = 999 Then
+    ' If P1 is N/A, cannot evaluate anything
+    If UCase(Trim(p1)) = "N/A" Then
         EvaluateStatus = vbNullString
         Exit Function
     End If
 
+    ' Priority 1: Check AVL and P1 status (always evaluated)
     If avl < 7 Or UCase(Trim(p1)) = "RED" Then
         EvaluateStatus = "RED"
         Exit Function
@@ -469,8 +471,17 @@ Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double
         Exit Function
     End If
 
+    ' Priority 2: If benchmark data is missing (benchDiff = 999), default to GREEN
+    ' since AVL >= 7 and P1 is GREEN (passed all above checks)
+    If benchDiff = 999 Then
+        EvaluateStatus = "GREEN"
+        Exit Function
+    End If
+
+    ' Priority 3: Evaluate benchmark comparison (if data available)
     If Not IsNumeric(targetVal) Or Not IsNumeric(testedVal) Then
-        EvaluateStatus = vbNullString
+        ' If benchmark values not numeric, default to GREEN since AVL/P1 passed
+        EvaluateStatus = "GREEN"
         Exit Function
     End If
 

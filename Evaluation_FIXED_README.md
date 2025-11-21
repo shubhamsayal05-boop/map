@@ -12,6 +12,11 @@ The status evaluation logic (around line 266) has been corrected to properly han
 
 **Affected modes:** Deceleration, Constant speed, Cylinder deactivation (and others with low yellow percentages)
 
+### Fix 3: Benchmark Data Handling (EvaluateStatus)
+The `EvaluateStatus` function (around line 448) now properly handles cases where benchmarking data (Target or Tested values) is missing. Instead of returning blank/N/A, the evaluation now proceeds based on available criteria (AVL score and P1 status).
+
+**Impact:** Operations with missing benchmark data but valid AVL/P1 data are now evaluated correctly instead of showing blank/N/A.
+
 ## Key Changes
 
 ### Change 1: InferParentMode Function (Lines 311-318 approximately):
@@ -48,6 +53,38 @@ End If
 ```
 
 This ensures operation modes with any YELLOW sub-operations (even ≤35%) show YELLOW status instead of N/A.
+
+### Change 3: Benchmark Data Handling (Lines 448-496 approximately):
+
+```vba
+' Priority-based evaluation logic
+' Priority 1: AVL and P1 status (always evaluated if available)
+If UCase(Trim(p1)) = "N/A" Then
+    EvaluateStatus = vbNullString
+    Exit Function
+End If
+
+If avl < 7 Or UCase(Trim(p1)) = "RED" Then
+    EvaluateStatus = "RED"
+    Exit Function
+End If
+
+If avl >= 7 And UCase(Trim(p1)) = "YELLOW" Then
+    EvaluateStatus = "YELLOW"
+    Exit Function
+End If
+
+' Priority 2: If benchmark data missing, default to GREEN (since AVL/P1 passed)
+If benchDiff = 999 Then
+    EvaluateStatus = "GREEN"
+    Exit Function
+End If
+
+' Priority 3: Evaluate benchmark comparison (if data available)
+' [benchmark comparison logic...]
+```
+
+This ensures operations with missing benchmark data are still evaluated based on AVL score and P1 status.
 
 ## All Operation Modes Covered
 
