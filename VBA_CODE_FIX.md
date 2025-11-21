@@ -182,7 +182,8 @@ The `BuildOperationModeSummary` function:
    - **RED** if any sub-operation is RED
    - **YELLOW** if >35% are YELLOW
    - **GREEN** if all are GREEN
-   - **N/A** otherwise
+   - **YELLOW** if has data but not all GREEN (covers cases with ≤35% YELLOW)
+   - **N/A** if no data available
 
 With the fix, sub-operations will be correctly associated with their parents, ensuring accurate status aggregation.
 

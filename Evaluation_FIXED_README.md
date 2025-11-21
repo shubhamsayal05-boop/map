@@ -1,14 +1,20 @@
 # Complete Fixed VBA Code - Evaluation Module
 
-This file (`Evaluation_FIXED.bas`) contains the **complete Evaluation VBA module** with the fix applied for all operation modes.
+This file (`Evaluation_FIXED.bas`) contains the **complete Evaluation VBA module** with fixes applied for all operation modes.
 
 ## What's Fixed
 
+### Fix 1: Sub-operation Matching (InferParentMode)
 The `InferParentMode` function (around line 303) has been modified to correctly match sub-operations to their parent operations by comparing the **first 4 digits** instead of all 8 digits.
 
-### Key Change
+### Fix 2: Status Evaluation Logic (BuildOperationModeSummary)
+The status evaluation logic (around line 266) has been corrected to properly handle cases where operation modes have YELLOW sub-operations with ≤35% yellow percentage. Previously these showed "N/A" incorrectly.
 
-**Lines 311-318 (approximately):**
+**Affected modes:** Deceleration, Constant speed, Cylinder deactivation (and others with low yellow percentages)
+
+## Key Changes
+
+### Change 1: InferParentMode Function (Lines 311-318 approximately):
 
 ```vba
 ' Match based on first 4 digits since all operation modes follow pattern "10XX0000"
@@ -23,7 +29,29 @@ For Each k In modes.Keys
 Next k
 ```
 
-This fix applies to **ALL operation modes**:
+### Change 2: Status Evaluation Logic (Lines 266-277 approximately):
+
+```vba
+' Fixed status evaluation to handle all cases correctly
+If anyRed Then
+    finalMode = "RED"
+ElseIf pctYellow > 0.35 Then
+    finalMode = "YELLOW"
+ElseIf total > 0 And allGreen Then
+    finalMode = "GREEN"
+ElseIf total > 0 Then
+    ' Has data but not all green (some yellow) - should be YELLOW
+    finalMode = "YELLOW"
+Else
+    finalMode = "N/A"
+End If
+```
+
+This ensures operation modes with any YELLOW sub-operations (even ≤35%) show YELLOW status instead of N/A.
+
+## All Operation Modes Covered
+
+These fixes apply to **ALL operation modes**:
 - ✓ Drive Away (1010): Creep, Standing start, Rolling start
 - ✓ Acceleration (1012): Full load, Constant load, Load increase/decrease
 - ✓ Gear shift (1009): All upshift/downshift variants, Maneuvering, Selector lever change

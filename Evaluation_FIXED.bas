@@ -269,6 +269,9 @@ Private Sub BuildOperationModeSummary(wsResults As Worksheet)
             finalMode = "YELLOW"
         ElseIf total > 0 And allGreen Then
             finalMode = "GREEN"
+        ElseIf total > 0 Then
+            ' Has data but not all green (some yellow) - should be YELLOW
+            finalMode = "YELLOW"
         Else
             finalMode = "N/A"
         End If
