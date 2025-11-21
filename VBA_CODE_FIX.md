@@ -1,17 +1,19 @@
-# Fix for Drive Away Operation Mode Status Evaluation
+# Fix for Operation Mode Status Evaluation
 
 ## Problem Description
 
-The evaluation sheet's Operation Mode Summary is not correctly evaluating sub-operation statuses. When sub-operations of Drive Away (codes starting with "1010") have RED status, the parent Drive Away operation mode should also show RED status, but currently it does not.
+The evaluation sheet's Operation Mode Summary is not correctly evaluating sub-operation statuses for **ALL operation modes**. When sub-operations have RED status, the parent operation mode should also show RED status, but currently it does not.
 
-### Example Issue:
+### Example Issue (Drive Away):
 - Parent operation: `10100000` (Drive away)
 - Sub-operations:
-  - `10101300` Drive Away Creep Eng On - Status: **RED**
-  - `10101100` DASS Eng On - Status: **RED**
-  - `10102400` DA Rolling Start - Status: **RED**
+  - `10101300` Creep - Status: **RED**
+  - `10101100` Standing start - Status: **RED**
+  - `10102400` Rolling start - Status: **RED**
 - Expected: Drive Away operation mode summary should be **RED**
 - Actual: Drive Away operation mode summary is not correctly evaluated
+
+**Note:** This issue affects all 13 parent operation modes and their 42+ sub-operations, not just Drive Away.
 
 ## Root Cause
 
@@ -161,10 +163,13 @@ All operation modes in the system use 8-digit codes with the pattern `10XX0000`:
 | 10430000 | 1043 | Cylinder deactivation |
 | 10450000 | 1045 | Vehicle stationary |
 
-Sub-operations share the first 4 digits with their parent operation. For example:
-- `10101300` → First 4 digits: `1010` → Parent: Drive away (`10100000`)
-- `10101100` → First 4 digits: `1010` → Parent: Drive away (`10100000`)
-- `10102400` → First 4 digits: `1010` → Parent: Drive away (`10100000`)
+Sub-operations share the first 4 digits with their parent operation. Examples across different modes:
+- `10101300` (Creep) → First 4 digits: `1010` → Parent: Drive away (`10100000`)
+- `10120100` (Full load) → First 4 digits: `1012` → Parent: Acceleration (`10120000`)
+- `10092300` (Power-on upshift) → First 4 digits: `1009` → Parent: Gear shift (`10090000`)
+- `10467300` (Converter controlled slip) → First 4 digits: `1046` → Parent: TCC control (`10460000`)
+
+**This fix applies to all 13 parent modes and their 42+ sub-operations, not just Drive Away.**
 
 ### Status Evaluation Logic
 

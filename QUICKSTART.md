@@ -2,7 +2,7 @@
 
 ## Problem
 
-The Operation Mode Summary in the evaluation sheet was not correctly evaluating sub-operation statuses. When sub-operations starting with "1010" (like 10101300, 10101100, 10102400) had RED status, the parent Drive Away operation (10100000) was not showing RED.
+The Operation Mode Summary in the evaluation sheet was not correctly evaluating sub-operation statuses for **ALL operation modes**. When sub-operations had RED status, their parent operation modes were not showing RED. This affects all 13 parent modes (Drive Away, Acceleration, Gear shift, etc.) and their 42+ sub-operations.
 
 ## Solution Provided
 
@@ -77,7 +77,10 @@ If Left$(code, Len(k)) = k Then  ' Compares all 8 digits
 If Left$(code, 4) = Left$(k, 4) Then  ' Compares only first 4 digits
 ```
 
-This ensures sub-operations (like 10101300) are correctly matched to their parent operation (10100000) based on the first 4 digits (1010).
+This ensures **ALL** sub-operations are correctly matched to their parent operations based on the first 4 digits. Examples:
+- 10101300 (Creep) → 10100000 (Drive away) via "1010"
+- 10120100 (Full load) → 10120000 (Acceleration) via "1012"
+- 10092300 (Power-on upshift) → 10090000 (Gear shift) via "1009"
 
 ## Testing
 
@@ -85,7 +88,11 @@ After applying the fix:
 
 1. Run your evaluation macro
 2. Check the Operation Mode Summary
-3. Verify that Drive Away (10100000) shows RED if its sub-operations (10101300, 10101100, 10102400) are RED
+3. Verify that parent operations show correct status based on their sub-operations:
+   - Drive Away (10100000) shows RED if its sub-operations are RED
+   - Acceleration (10120000) shows RED if its sub-operations are RED
+   - Gear shift (10090000) shows RED if its sub-operations are RED
+   - Same logic applies to all 13 parent operation modes
 
 ## Need More Information?
 

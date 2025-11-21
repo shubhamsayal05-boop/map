@@ -6,9 +6,9 @@ This repository contains the AVL Drive Heatmap Tool for evaluating drive operati
 
 ### Operation Mode Status Evaluation Issue
 
-**Issue:** The evaluation sheet's Operation Mode Summary was not correctly evaluating sub-operation statuses. When sub-operations of Drive Away (codes starting with "1010") had RED status, the parent Drive Away operation mode was not showing RED status.
+**Issue:** The evaluation sheet's Operation Mode Summary was not correctly evaluating sub-operation statuses for **ALL operation modes**. When sub-operations had RED status, their parent operation modes were not showing RED status. This affected all 13 parent modes and their 42+ sub-operations.
 
-**Solution:** Fixed the `InferParentMode` function in the VBA code to match operation codes based on the first 4 digits instead of all 8 digits.
+**Solution:** Fixed the `InferParentMode` function in the VBA code to match operation codes based on the first 4 digits instead of all 8 digits. This ensures proper status aggregation across all operation mode families (Drive Away, Acceleration, Gear shift, TCC control, etc.).
 
 ## Files
 
@@ -45,19 +45,23 @@ This repository contains the AVL Drive Heatmap Tool for evaluating drive operati
 
 4. **Verify the fix:**
    - Run the evaluation macro
-   - Check that sub-operations (e.g., 10101300, 10101100, 10102400) are correctly grouped under their parent operation mode (10100000 - Drive Away)
-   - Verify that if sub-operations have RED status, the parent also shows RED
+   - Check that sub-operations are correctly grouped under their parent operation modes:
+     - 10101300, 10101100, 10102400 → 10100000 (Drive Away)
+     - 10120100, 10120200, 10120300 → 10120000 (Acceleration)
+     - 10092300, 10093200, 10098200 → 10090000 (Gear shift)
+   - Verify that if sub-operations have RED status, their parents also show RED
 
 ## Technical Details
 
 The tool evaluates automotive drive operation modes based on test results. Operation modes use an 8-digit code system where the first 4 digits identify the mode family:
 
-- **1010**xxxx - Drive away operations
-- **1012**xxxx - Acceleration operations  
-- **1003**xxxx - Tip in operations
-- etc.
+- **1010**xxxx - Drive away operations (Creep, Standing start, Rolling start)
+- **1012**xxxx - Acceleration operations (Full load, Constant load, Load increase/decrease)
+- **1009**xxxx - Gear shift operations (Upshift, Downshift, Maneuvering)
+- **1046**xxxx - TCC control operations (Lock up, Controlled slip, Release)
+- **1003**xxxx, **1004**xxxx, **1007**xxxx, **1008**xxxx, **1001**xxxx, **1002**xxxx, **1014**xxxx, **1043**xxxx, **1045**xxxx - Other mode families
 
-The fix ensures that sub-operations are correctly associated with their parent operations for accurate status aggregation in the Operation Mode Summary.
+The fix ensures that **all 42+ sub-operations** are correctly associated with their parent operations (13 total) for accurate status aggregation in the Operation Mode Summary.
 
 ## Requirements
 
