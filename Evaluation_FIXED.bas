@@ -447,10 +447,10 @@ End Function
 ' Evaluate status using AVL, P1 color and bench difference
 Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double, targetVal As Double, testedVal As Double) As String
     ' Updated evaluation logic per specification:
-    ' 1. AVL > 7 AND P1 = GREEN AND meeting benchmark → GREEN (OK)
-    ' 2. AVL > 7 AND P1 = GREEN AND NOT meeting benchmark → YELLOW (Acceptable, improve if possible)
-    ' 3. AVL > 7 AND P1 = YELLOW AND meeting benchmark → YELLOW (Acceptable, improve if possible)
-    ' 4. AVL > 7 AND P1 = YELLOW AND NOT meeting benchmark → YELLOW (Acceptable, improve if possible)
+    ' 1. AVL >= 7 AND P1 = GREEN AND meeting benchmark → GREEN (OK)
+    ' 2. AVL >= 7 AND P1 = GREEN AND NOT meeting benchmark → YELLOW (Acceptable, improve if possible)
+    ' 3. AVL >= 7 AND P1 = YELLOW AND meeting benchmark → YELLOW (Acceptable, improve if possible)
+    ' 4. AVL >= 7 AND P1 = YELLOW AND NOT meeting benchmark → YELLOW (Acceptable, improve if possible)
     ' 5. AVL < 7 OR P1 = RED → RED (NOK improve or buy off)
     ' 6. AVL < 7 OR P1 = RED AND meeting benchmark → RED (still NOK improve or buy off)
     ' 7. If no benchmark data → ignore benchmark and evaluate on AVL and P1 only

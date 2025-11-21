@@ -33,10 +33,10 @@ Modified the evaluation logic to match the specification:
 
 ### Evaluation Rules
 
-1. **AVL > 7 AND P1 = GREEN AND meeting benchmark** → **GREEN** (OK)
-2. **AVL > 7 AND P1 = GREEN AND NOT meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
-3. **AVL > 7 AND P1 = YELLOW AND meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
-4. **AVL > 7 AND P1 = YELLOW AND NOT meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
+1. **AVL >= 7 AND P1 = GREEN AND meeting benchmark** → **GREEN** (OK)
+2. **AVL >= 7 AND P1 = GREEN AND NOT meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
+3. **AVL >= 7 AND P1 = YELLOW AND meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
+4. **AVL >= 7 AND P1 = YELLOW AND NOT meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
 5. **AVL < 7 OR P1 = RED** → **RED** (NOK improve or buy off)
 6. **AVL < 7 OR P1 = RED AND meeting benchmark** → **RED** (still NOK improve or buy off)
 7. **If no benchmark data** → ignore benchmark and evaluate on AVL and P1 only
@@ -109,7 +109,7 @@ This change ensures:
 
 ## Examples
 
-### Example 1: AVL > 7, P1 = GREEN, Meeting Benchmark
+### Example 1: AVL >= 7, P1 = GREEN, Meeting Benchmark
 ```
 - AVL: 7.5
 - P1: GREEN
@@ -117,7 +117,7 @@ This change ensures:
 - Status: GREEN ✓ (Rule 1: Meeting benchmark)
 ```
 
-### Example 2: AVL > 7, P1 = GREEN, NOT Meeting Benchmark
+### Example 2: AVL >= 7, P1 = GREEN, NOT Meeting Benchmark
 ```
 - AVL: 7.5
 - P1: GREEN
@@ -125,7 +125,7 @@ This change ensures:
 - Status: YELLOW ✓ (Rule 2: Not meeting benchmark, acceptable but improve)
 ```
 
-### Example 3: AVL > 7, P1 = YELLOW, Meeting Benchmark
+### Example 3: AVL >= 7, P1 = YELLOW, Meeting Benchmark
 ```
 - AVL: 7.5
 - P1: YELLOW
@@ -133,7 +133,7 @@ This change ensures:
 - Status: YELLOW ✓ (Rule 3: P1 is YELLOW, always YELLOW)
 ```
 
-### Example 4: AVL > 7, P1 = YELLOW, NOT Meeting Benchmark
+### Example 4: AVL >= 7, P1 = YELLOW, NOT Meeting Benchmark
 ```
 - AVL: 7.5
 - P1: YELLOW
