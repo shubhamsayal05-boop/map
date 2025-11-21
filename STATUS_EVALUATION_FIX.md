@@ -3,9 +3,11 @@
 ## Issue Identified
 
 Three operation modes were showing "N/A" status instead of proper evaluation:
-- **Deceleration (10070000)**: 16.67% yellow → showed N/A ❌
-- **Constant speed (10080000)**: 46.67% yellow → showed N/A ❌  
-- **Cylinder deactivation (10430000)**: 0% yellow → showed N/A ❌
+- **Deceleration (10070000)**: Displayed % yellow value but showed N/A ❌
+- **Constant speed (10080000)**: Displayed % yellow value but showed N/A ❌  
+- **Cylinder deactivation (10430000)**: Displayed % yellow value but showed N/A ❌
+
+Note: The displayed % Yellow values in the screenshot indicate these modes have sub-operation data collected.
 
 ## Root Cause
 
@@ -32,15 +34,23 @@ End If
 
 The logic would fall through to "N/A" instead of "YELLOW".
 
-### Example Cases
+### Example Case
 
-**Deceleration (16.67% yellow):**
-1. anyRed = False ✗
-2. pctYellow (0.1667) > 0.35? No ✗
-3. total > 0 And allGreen? No (has yellows) ✗
+**Operation mode with low yellow percentage (e.g., Deceleration):**
+
+Assume Deceleration has:
+- 1 YELLOW sub-operation
+- 5 GREEN sub-operations  
+- total = 6, yellowCnt = 1
+- pctYellow = 1/6 = 0.1667 (16.67%)
+
+Logic evaluation:
+1. anyRed = False ✗ (no red statuses)
+2. pctYellow (0.1667) > 0.35? No ✗ (16.67% ≤ 35%)
+3. total > 0 And allGreen? No ✗ (has yellows, not all green)
 4. **Falls to N/A** ❌
 
-**Should be YELLOW** because it has some YELLOW sub-operations.
+**Should be YELLOW** because it has YELLOW sub-operations, regardless of percentage.
 
 ## Solution
 
@@ -95,20 +105,22 @@ This fix resolves the N/A issue for operation modes like:
 ## Testing
 
 After applying this fix, verify:
-1. Modes with any YELLOW sub-operations show YELLOW status
-2. Modes with >35% YELLOW still show YELLOW
+1. Modes with any YELLOW sub-operations show YELLOW status (regardless of percentage)
+2. Modes with >35% YELLOW show YELLOW
 3. Modes with all GREEN show GREEN
-4. Only modes with no data show N/A
+4. Only modes with no sub-operation data show N/A
 
 Example verification:
 ```
 Deceleration (10070000):
-- Sub-operations: Mix of YELLOW statuses
-- Yellow percentage: 16.67%
+- Has sub-operation data with some YELLOW statuses
 - Expected: YELLOW ✓ (was showing N/A)
 
 Constant speed (10080000):
-- Sub-operations: Mix including YELLOW
-- Yellow percentage: 46.67%
+- Has sub-operation data with some YELLOW statuses
 - Expected: YELLOW ✓ (was showing N/A)
+
+Cylinder deactivation (10430000):
+- Has sub-operation data
+- Expected: YELLOW or GREEN based on actual statuses ✓ (was showing N/A)
 ```
