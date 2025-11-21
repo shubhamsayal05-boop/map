@@ -74,7 +74,8 @@ If avl >= 7 And UCase(Trim(p1)) = "YELLOW" Then
     Exit Function
 End If
 
-' Priority 2: If benchmark data missing, default to GREEN (since AVL/P1 passed)
+' Priority 2: If benchmark data missing, default to GREEN
+' (since AVL >= 7 and P1 is not RED/YELLOW/N/A)
 If benchDiff = 999 Then
     EvaluateStatus = "GREEN"
     Exit Function
@@ -84,7 +85,7 @@ End If
 ' [benchmark comparison logic...]
 ```
 
-This ensures operations with missing benchmark data are still evaluated based on AVL score and P1 status.
+This ensures operations with missing benchmark data are still evaluated based on AVL score and P1 status. If AVL and P1 are in passing state but benchmark data is missing, the operation receives GREEN status.
 
 ## All Operation Modes Covered
 

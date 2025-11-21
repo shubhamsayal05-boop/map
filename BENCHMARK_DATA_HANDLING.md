@@ -106,32 +106,38 @@ This change ensures:
 
 ### Before Fix:
 ```
-Operation: Drive Away Creep Eng On - Cold
-- AVL: 7 (GREEN threshold)
-- P1: N/A
-- Target: 0, Tested: 0 (missing)
-- Status: blank ❌
+Operation: Example with missing benchmark
+- AVL: 7.5
+- P1: GREEN
+- Target: 0, Tested: 0 (missing benchmark data)
+- Status: blank ❌ (returned blank due to benchDiff = 999)
 ```
 
 ### After Fix:
 ```
-Operation: Drive Away Creep Eng On - Cold
-- AVL: 7 (GREEN threshold)
-- P1: N/A
-- Target: 0, Tested: 0 (missing)
-- Status: blank ✓ (P1 is N/A, truly no data)
-
-Operation: DASS Eng On - Cold
-- AVL: 6.7
-- P1: N/A
-- Target: 0, Tested: 0 (missing)
-- Status: blank ✓ (P1 is N/A)
+Operation: Example with missing benchmark
+- AVL: 7.5
+- P1: GREEN
+- Target: 0, Tested: 0 (missing benchmark data)
+- Status: GREEN ✓ (evaluated on AVL >= 7 and P1 = GREEN)
 
 Operation: Example with P1 data but no benchmark
-- AVL: 7.5
+- AVL: 8.0
 - P1: GREEN
 - Target: 0, Tested: 0 (missing)
 - Status: GREEN ✓ (evaluated on AVL and P1)
+
+Operation: Example with RED P1 and no benchmark
+- AVL: 7.5
+- P1: RED
+- Target: 0, Tested: 0 (missing)
+- Status: RED ✓ (evaluated on P1 status)
+
+Operation: Example with truly no data
+- AVL: 7.0
+- P1: N/A
+- Target: 0, Tested: 0
+- Status: blank ✓ (P1 is N/A, cannot evaluate)
 ```
 
 ## Files Updated

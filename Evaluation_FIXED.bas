@@ -472,7 +472,7 @@ Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double
     End If
 
     ' Priority 2: If benchmark data is missing (benchDiff = 999), default to GREEN
-    ' since AVL >= 7 and P1 is GREEN (passed all above checks)
+    ' since AVL >= 7 and P1 is not RED/YELLOW/N/A (i.e., in passing state)
     If benchDiff = 999 Then
         EvaluateStatus = "GREEN"
         Exit Function
@@ -480,7 +480,7 @@ Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double
 
     ' Priority 3: Evaluate benchmark comparison (if data available)
     If Not IsNumeric(targetVal) Or Not IsNumeric(testedVal) Then
-        ' If benchmark values not numeric, default to GREEN since AVL/P1 passed
+        ' If benchmark values not numeric, default to GREEN since AVL/P1 in passing state
         EvaluateStatus = "GREEN"
         Exit Function
     End If
