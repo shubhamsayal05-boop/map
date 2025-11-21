@@ -57,35 +57,40 @@ This ensures operation modes with any YELLOW sub-operations (even ≤35%) show Y
 ### Change 3: Benchmark Data Handling (Lines 448-496 approximately):
 
 ```vba
-' Priority-based evaluation logic
-' Priority 1: AVL and P1 status (always evaluated if available)
-If UCase(Trim(p1)) = "N/A" Then
-    EvaluateStatus = vbNullString
-    Exit Function
-End If
-
+' Rule-based evaluation logic per specification
+' Rule 5 & 6: AVL < 7 OR P1 = RED → Always RED
 If avl < 7 Or UCase(Trim(p1)) = "RED" Then
     EvaluateStatus = "RED"
     Exit Function
 End If
 
+' Rule 3 & 4: P1 = YELLOW → Always YELLOW
 If avl >= 7 And UCase(Trim(p1)) = "YELLOW" Then
     EvaluateStatus = "YELLOW"
     Exit Function
 End If
 
-' Priority 2: If benchmark data missing, default to GREEN
-' (since AVL >= 7 and P1 is not RED/YELLOW/N/A)
+' At this point: AVL >= 7 AND P1 = GREEN
+
+' If benchmark data missing, ignore it
 If benchDiff = 999 Then
-    EvaluateStatus = "GREEN"
+    EvaluateStatus = "GREEN"  ' Rule 7: No benchmark, evaluate on AVL/P1 only
     Exit Function
 End If
 
-' Priority 3: Evaluate benchmark comparison (if data available)
-' [benchmark comparison logic...]
+' Rule 1 & 2: Benchmark comparison (if data available)
+If testedVal >= targetVal Then
+    EvaluateStatus = "GREEN"   ' Rule 1: Meeting benchmark
+Else
+    EvaluateStatus = "YELLOW"  ' Rule 2: Not meeting benchmark, improve if possible
+End If
 ```
 
-This ensures operations with missing benchmark data are still evaluated based on AVL score and P1 status. If AVL and P1 are in passing state but benchmark data is missing, the operation receives GREEN status.
+This implements the specified evaluation rules:
+- AVL < 7 or P1 = RED → RED (regardless of benchmark)
+- AVL >= 7 and P1 = YELLOW → YELLOW (regardless of benchmark)
+- AVL >= 7 and P1 = GREEN with benchmark: meeting → GREEN, not meeting → YELLOW
+- AVL >= 7 and P1 = GREEN without benchmark → GREEN
 
 ## All Operation Modes Covered
 

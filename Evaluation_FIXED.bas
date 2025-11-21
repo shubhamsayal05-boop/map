@@ -446,13 +446,14 @@ End Function
 
 ' Evaluate status using AVL, P1 color and bench difference
 Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double, targetVal As Double, testedVal As Double) As String
-    ' Updated evaluation logic:
-    ' - If benchmark data missing (benchDiff = 999), evaluate based on AVL and P1 only
-    ' - If tested > target => GREEN (better than benchmark)
-    ' - If tested <= target: Target - Tested > 2 => YELLOW else GREEN
-    ' - If avl < 7 Or p1 = RED => RED
-    ' - If avl >= 7 And p1 = YELLOW => YELLOW
-    ' - Only return blank/N/A if P1 is N/A (no data to evaluate)
+    ' Updated evaluation logic per specification:
+    ' 1. AVL > 7 AND P1 = GREEN AND meeting benchmark → GREEN (OK)
+    ' 2. AVL > 7 AND P1 = GREEN AND NOT meeting benchmark → YELLOW (Acceptable, improve if possible)
+    ' 3. AVL > 7 AND P1 = YELLOW AND meeting benchmark → YELLOW (Acceptable, improve if possible)
+    ' 4. AVL > 7 AND P1 = YELLOW AND NOT meeting benchmark → YELLOW (Acceptable, improve if possible)
+    ' 5. AVL < 7 OR P1 = RED → RED (NOK improve or buy off)
+    ' 6. AVL < 7 OR P1 = RED AND meeting benchmark → RED (still NOK improve or buy off)
+    ' 7. If no benchmark data → ignore benchmark and evaluate on AVL and P1 only
 
     ' If P1 is N/A, cannot evaluate anything
     If UCase(Trim(p1)) = "N/A" Then
@@ -460,39 +461,47 @@ Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double
         Exit Function
     End If
 
-    ' Priority 1: Check AVL and P1 status (always evaluated)
+    ' Rule 5 & 6: If AVL < 7 OR P1 = RED → Always RED (regardless of benchmark)
     If avl < 7 Or UCase(Trim(p1)) = "RED" Then
         EvaluateStatus = "RED"
         Exit Function
     End If
 
+    ' At this point: AVL >= 7 AND P1 is either GREEN or YELLOW
+    
+    ' Rule 3 & 4: If P1 = YELLOW → Always YELLOW (regardless of benchmark)
     If avl >= 7 And UCase(Trim(p1)) = "YELLOW" Then
         EvaluateStatus = "YELLOW"
         Exit Function
     End If
 
-    ' Priority 2: If benchmark data is missing (benchDiff = 999), default to GREEN
-    ' since AVL >= 7 and P1 is not RED/YELLOW/N/A (i.e., in passing state)
+    ' At this point: AVL >= 7 AND P1 = GREEN
+    ' Need to check benchmark data
+    
+    ' If benchmark data is missing, ignore it and evaluate on AVL/P1 only
     If benchDiff = 999 Then
+        ' AVL >= 7 AND P1 = GREEN AND no benchmark data → GREEN
         EvaluateStatus = "GREEN"
         Exit Function
     End If
 
-    ' Priority 3: Evaluate benchmark comparison (if data available)
+    ' If benchmark values not numeric, ignore benchmark
     If Not IsNumeric(targetVal) Or Not IsNumeric(testedVal) Then
-        ' If benchmark values not numeric, default to GREEN since AVL/P1 in passing state
+        ' AVL >= 7 AND P1 = GREEN AND no valid benchmark → GREEN
         EvaluateStatus = "GREEN"
         Exit Function
     End If
 
-    If testedVal > targetVal Then
+    ' Benchmark data is available, evaluate it
+    ' Rule 1: AVL >= 7 AND P1 = GREEN AND meeting benchmark → GREEN
+    ' Rule 2: AVL >= 7 AND P1 = GREEN AND NOT meeting benchmark → YELLOW
+    
+    ' Meeting benchmark means: tested >= target (meeting or exceeding)
+    If testedVal >= targetVal Then
         EvaluateStatus = "GREEN"
     Else
-        If (targetVal - testedVal) > 2 Then
-            EvaluateStatus = "YELLOW"
-        Else
-            EvaluateStatus = "GREEN"
-        End If
+        ' Not meeting benchmark: tested < target
+        EvaluateStatus = "YELLOW"
     End If
 End Function
 

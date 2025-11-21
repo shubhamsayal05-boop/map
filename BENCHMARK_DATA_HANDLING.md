@@ -29,28 +29,31 @@ When `benchDiff = 999` (sentinel value for missing benchmark data), the function
 
 ## Solution
 
-Modified the evaluation logic to use a **priority-based approach**:
+Modified the evaluation logic to match the specification:
 
-### Evaluation Priority Order
+### Evaluation Rules
 
-1. **Priority 1: AVL Score and P1 Status** (Always evaluated if available)
-   - If AVL < 7 OR P1 = RED → **RED**
-   - If AVL >= 7 AND P1 = YELLOW → **YELLOW**
-   - Only return blank if P1 is N/A (truly no data)
+1. **AVL > 7 AND P1 = GREEN AND meeting benchmark** → **GREEN** (OK)
+2. **AVL > 7 AND P1 = GREEN AND NOT meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
+3. **AVL > 7 AND P1 = YELLOW AND meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
+4. **AVL > 7 AND P1 = YELLOW AND NOT meeting benchmark** → **YELLOW** (Acceptable, improve if possible)
+5. **AVL < 7 OR P1 = RED** → **RED** (NOK improve or buy off)
+6. **AVL < 7 OR P1 = RED AND meeting benchmark** → **RED** (still NOK improve or buy off)
+7. **If no benchmark data** → ignore benchmark and evaluate on AVL and P1 only
 
-2. **Priority 2: Benchmark Data** (Evaluated only if available)
-   - If benchmark data missing (benchDiff = 999) → **GREEN** (since AVL/P1 passed)
-   - If Target/Tested not numeric → **GREEN** (since AVL/P1 passed)
+### Key Points
 
-3. **Priority 3: Benchmark Comparison** (If data available)
-   - If Tested > Target → **GREEN**
-   - If Target - Tested > 2 → **YELLOW**
-   - Otherwise → **GREEN**
+- "Meeting benchmark" means: `tested >= target` (meeting or exceeding the target)
+- If AVL < 7 or P1 = RED → always RED (regardless of benchmark)
+- If AVL >= 7 and P1 = YELLOW → always YELLOW (regardless of benchmark)
+- If AVL >= 7 and P1 = GREEN:
+  - With benchmark: meeting → GREEN, not meeting → YELLOW
+  - Without benchmark: GREEN
 
 ### Updated Logic
 
 ```vba
-' NEW Logic
+' NEW Logic - Following specification
 Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double, targetVal As Double, testedVal As Double) As String
     ' If P1 is N/A, cannot evaluate anything
     If UCase(Trim(p1)) = "N/A" Then
@@ -58,38 +61,40 @@ Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double
         Exit Function
     End If
 
-    ' Priority 1: Check AVL and P1 status (always evaluated)
+    ' Rule 5 & 6: If AVL < 7 OR P1 = RED → Always RED (regardless of benchmark)
     If avl < 7 Or UCase(Trim(p1)) = "RED" Then
         EvaluateStatus = "RED"
         Exit Function
     End If
 
+    ' Rule 3 & 4: If P1 = YELLOW → Always YELLOW (regardless of benchmark)
     If avl >= 7 And UCase(Trim(p1)) = "YELLOW" Then
         EvaluateStatus = "YELLOW"
         Exit Function
     End If
 
-    ' Priority 2: If benchmark data missing, default to GREEN
-    ' (since AVL >= 7 and P1 is GREEN)
+    ' At this point: AVL >= 7 AND P1 = GREEN
+    
+    ' If benchmark data is missing, ignore it and evaluate on AVL/P1 only
     If benchDiff = 999 Then
+        ' AVL >= 7 AND P1 = GREEN AND no benchmark data → GREEN
         EvaluateStatus = "GREEN"
         Exit Function
     End If
 
-    ' Priority 3: Evaluate benchmark comparison (if data available)
+    ' If benchmark values not numeric, ignore benchmark
     If Not IsNumeric(targetVal) Or Not IsNumeric(testedVal) Then
         EvaluateStatus = "GREEN"
         Exit Function
     End If
 
-    If testedVal > targetVal Then
+    ' Rule 1 & 2: Benchmark data is available
+    ' Meeting benchmark: tested >= target → GREEN
+    ' Not meeting benchmark: tested < target → YELLOW
+    If testedVal >= targetVal Then
         EvaluateStatus = "GREEN"
     Else
-        If (targetVal - testedVal) > 2 Then
-            EvaluateStatus = "YELLOW"
-        Else
-            EvaluateStatus = "GREEN"
-        End If
+        EvaluateStatus = "YELLOW"
     End If
 End Function
 ```
@@ -104,36 +109,64 @@ This change ensures:
 
 ## Examples
 
-### Before Fix:
+### Example 1: AVL > 7, P1 = GREEN, Meeting Benchmark
 ```
-Operation: Example with missing benchmark
 - AVL: 7.5
 - P1: GREEN
-- Target: 0, Tested: 0 (missing benchmark data)
-- Status: blank ❌ (returned blank due to benchDiff = 999)
+- Target: 100, Tested: 105 (tested >= target)
+- Status: GREEN ✓ (Rule 1: Meeting benchmark)
 ```
 
-### After Fix:
+### Example 2: AVL > 7, P1 = GREEN, NOT Meeting Benchmark
 ```
-Operation: Example with missing benchmark
 - AVL: 7.5
 - P1: GREEN
-- Target: 0, Tested: 0 (missing benchmark data)
-- Status: GREEN ✓ (evaluated on AVL >= 7 and P1 = GREEN)
+- Target: 100, Tested: 95 (tested < target)
+- Status: YELLOW ✓ (Rule 2: Not meeting benchmark, acceptable but improve)
+```
 
-Operation: Example with P1 data but no benchmark
-- AVL: 8.0
+### Example 3: AVL > 7, P1 = YELLOW, Meeting Benchmark
+```
+- AVL: 7.5
+- P1: YELLOW
+- Target: 100, Tested: 105 (tested >= target)
+- Status: YELLOW ✓ (Rule 3: P1 is YELLOW, always YELLOW)
+```
+
+### Example 4: AVL > 7, P1 = YELLOW, NOT Meeting Benchmark
+```
+- AVL: 7.5
+- P1: YELLOW
+- Target: 100, Tested: 95 (tested < target)
+- Status: YELLOW ✓ (Rule 4: P1 is YELLOW, always YELLOW)
+```
+
+### Example 5: AVL < 7, P1 = GREEN
+```
+- AVL: 6.5
 - P1: GREEN
-- Target: 0, Tested: 0 (missing)
-- Status: GREEN ✓ (evaluated on AVL and P1)
+- Target: 100, Tested: 105
+- Status: RED ✓ (Rule 5: AVL < 7, always RED)
+```
 
-Operation: Example with RED P1 and no benchmark
+### Example 6: P1 = RED, Meeting Benchmark
+```
 - AVL: 7.5
 - P1: RED
-- Target: 0, Tested: 0 (missing)
-- Status: RED ✓ (evaluated on P1 status)
+- Target: 100, Tested: 105 (meeting benchmark)
+- Status: RED ✓ (Rule 6: P1 is RED, always RED)
+```
 
-Operation: Example with truly no data
+### Example 7: No Benchmark Data
+```
+- AVL: 7.5
+- P1: GREEN
+- Target: 0, Tested: 0 (missing benchmark data)
+- Status: GREEN ✓ (Rule 7: Ignore benchmark, evaluate on AVL and P1 only)
+```
+
+### Example 8: Truly No Data
+```
 - AVL: 7.0
 - P1: N/A
 - Target: 0, Tested: 0
