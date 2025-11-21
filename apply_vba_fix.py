@@ -8,13 +8,19 @@ the information needed to manually apply the fix.
 from oletools.olevba import VBA_Parser
 import sys
 import os
+import traceback
 
 def main():
-    input_file = 'AVLDrive_Heatmap_Tool version3.1.xlsm'
+    # Allow file to be specified via command line argument
+    if len(sys.argv) > 1:
+        input_file = sys.argv[1]
+    else:
+        input_file = 'AVLDrive_Heatmap_Tool version3.1.xlsm'
     
     if not os.path.exists(input_file):
         print(f"ERROR: Could not find {input_file}")
-        print("Please run this script from the directory containing the Excel file.")
+        print("\nUsage: python3 apply_vba_fix.py [filename.xlsm]")
+        print("If no filename is provided, looks for 'AVLDrive_Heatmap_Tool version3.1.xlsm'")
         sys.exit(1)
     
     print("="*80)
@@ -97,7 +103,6 @@ End Function''')
         
     except Exception as e:
         print(f"\nERROR: {e}")
-        import traceback
         traceback.print_exc()
         sys.exit(1)
 

@@ -184,5 +184,4 @@ With the fix, sub-operations will be correctly associated with their parents, en
 ---
 
 **Version:** 1.0  
-**Date:** 2025-11-21  
-**Author:** GitHub Copilot Coding Agent
+**Date:** 2025-11-21
