@@ -7,10 +7,11 @@ This feature allows users to dynamically select Target and Tested cars through a
 ## How It Works
 
 1. User runs `EvaluateAVLStatus` macro
-2. **Popup dialog appears** with prompts for Target and Tested car selection
-3. User enters/selects car names from the list shown
-4. Evaluation runs with the selected cars' data
-5. Results sheet shows which cars were evaluated
+2. **Sheet1 automatically activates** so user can see data while selecting cars
+3. **Popup dialog appears** with prompts for Target and Tested car selection
+4. User enters/selects car names from the list shown
+5. Evaluation runs with the selected cars' data
+6. Results sheet shows which cars were evaluated
 
 ## Installation
 

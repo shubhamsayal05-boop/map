@@ -22,6 +22,11 @@ Public Sub EvaluateAVLStatus()
     Dim targetCarName As String, testedCarName As String
     Dim targetCol As Integer, testedCol As Integer
     Dim cols As Variant
+    
+    ' Activate Sheet1 so user can see data when selecting cars
+    On Error Resume Next
+    ThisWorkbook.Sheets("Sheet1").Activate
+    On Error GoTo 0
 
     ' NEW: Show car selection dialog
     If Not ShowCarSelectionDialog() Then
