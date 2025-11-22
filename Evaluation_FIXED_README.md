@@ -80,16 +80,23 @@ End If
 
 ' Rule 1 & 2: Benchmark comparison (if data available)
 If testedVal >= targetVal Then
-    EvaluateStatus = "GREEN"   ' Rule 1: Meeting benchmark
+    ' Check if exceeds by too much
+    If (testedVal - targetVal) > 2 Then
+        EvaluateStatus = "YELLOW"  ' Exceeding by more than 2
+    Else
+        EvaluateStatus = "GREEN"   ' Meeting within range
+    End If
 Else
-    EvaluateStatus = "YELLOW"  ' Rule 2: Not meeting benchmark, improve if possible
+    EvaluateStatus = "YELLOW"      ' Not meeting benchmark
 End If
 ```
 
 This implements the specified evaluation rules:
 - AVL < 7 or P1 = RED → RED (regardless of benchmark)
 - AVL >= 7 and P1 = YELLOW → YELLOW (regardless of benchmark)
-- AVL >= 7 and P1 = GREEN with benchmark: meeting → GREEN, not meeting → YELLOW
+- AVL >= 7 and P1 = GREEN with benchmark: 
+  - Meeting (tested >= target AND difference <= 2) → GREEN
+  - Not meeting (tested < target OR difference > 2) → YELLOW
 - AVL >= 7 and P1 = GREEN without benchmark → GREEN
 
 ## All Operation Modes Covered
