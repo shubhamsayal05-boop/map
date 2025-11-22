@@ -388,16 +388,23 @@ Private Function EvaluateStatus(avl As Double, p1 As String, _
 End Function
 
 ' Combine Driv + Resp → Final
+' New logic: If one is GREEN and the other is N/A, result is GREEN
+' Only show N/A when BOTH are N/A or blank
 Private Function CombineStatus(drivStatus As String, respStatus As String) As String
-    drivStatus = UCase(Trim(drivStatus))
-    respStatus = UCase(Trim(respStatus))
+    Dim driv As String, resp As String
+    driv = UCase(Trim(drivStatus))
+    resp = UCase(Trim(respStatus))
 
-    If drivStatus = "RED" Or respStatus = "RED" Then
+    ' Priority 1: RED - if either is RED, result is RED
+    If driv = "RED" Or resp = "RED" Then
         CombineStatus = "RED"
-    ElseIf drivStatus = "YELLOW" Or respStatus = "YELLOW" Then
+    ' Priority 2: YELLOW - if either is YELLOW (and neither is RED), result is YELLOW
+    ElseIf driv = "YELLOW" Or resp = "YELLOW" Then
         CombineStatus = "YELLOW"
-    ElseIf drivStatus = "GREEN" And respStatus = "GREEN" Then
+    ' Priority 3: GREEN - if at least one is GREEN, result is GREEN
+    ElseIf driv = "GREEN" Or resp = "GREEN" Then
         CombineStatus = "GREEN"
+    ' Priority 4: N/A - only when BOTH are N/A or blank
     Else
         CombineStatus = ""
     End If
