@@ -43,10 +43,11 @@ Modified the evaluation logic to match the specification:
 
 ### Key Points
 
-- "Meeting benchmark" means: `tested >= target` AND `(tested - target) <= 2`
-  - Tested value must meet or exceed target, but not exceed by more than 2 units
-  - Exceeding by more than 2 is considered NOT meeting benchmark
-- "NOT meeting benchmark" means: `tested < target` OR `(tested - target) > 2`
+- "Meeting benchmark" means:
+  - If `tested >= target` → GREEN (always, regardless of how much it exceeds)
+  - If `tested < target` AND `(target - tested) <= 2` → GREEN (within tolerance)
+- "NOT meeting benchmark" means:
+  - If `tested < target` AND `(target - tested) > 2` → YELLOW (below target by more than 2)
 - If AVL < 7 or P1 = RED → always RED (regardless of benchmark)
 - If AVL >= 7 and P1 = YELLOW → always YELLOW (regardless of benchmark)
 - If AVL >= 7 and P1 = GREEN:
@@ -92,17 +93,20 @@ Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double
     End If
 
     ' Rule 1 & 2: Benchmark data is available
-    ' Meeting benchmark: tested >= target AND (tested - target) <= 2
-    ' Not meeting: tested < target OR (tested - target) > 2
+    ' Meeting benchmark logic:
+    ' - tested >= target → GREEN (always)
+    ' - tested < target AND (target - tested) <= 2 → GREEN (within tolerance)
+    ' - tested < target AND (target - tested) > 2 → YELLOW (not meeting)
     If testedVal >= targetVal Then
-        ' Check if exceeds by too much
-        If (testedVal - targetVal) > 2 Then
-            EvaluateStatus = "YELLOW"  ' Exceeding by more than 2
-        Else
-            EvaluateStatus = "GREEN"   ' Meeting benchmark within range
-        End If
+        ' Tested meets or exceeds target - always GREEN
+        EvaluateStatus = "GREEN"
     Else
-        EvaluateStatus = "YELLOW"      ' Not meeting benchmark
+        ' Tested below target - check tolerance
+        If (targetVal - testedVal) <= 2 Then
+            EvaluateStatus = "GREEN"   ' Within tolerance
+        Else
+            EvaluateStatus = "YELLOW"  ' Not meeting benchmark
+        End If
     End If
 End Function
 ```
@@ -117,31 +121,39 @@ This change ensures:
 
 ## Examples
 
-### Example 1: AVL >= 7, P1 = GREEN, Meeting Benchmark (Within Range)
+### Example 1: AVL >= 7, P1 = GREEN, Meeting Benchmark (Exceeds Target)
 ```
 - AVL: 7.5
 - P1: GREEN
-- Target: 100, Tested: 101 (tested >= target, difference = 1)
-- Status: GREEN ✓ (Rule 1: Meeting benchmark within acceptable range)
+- Target: 100, Tested: 101 (tested > target, difference = 1)
+- Status: GREEN ✓ (Rule 1: Tested exceeds target)
 ```
 
-### Example 2a: AVL >= 7, P1 = GREEN, NOT Meeting Benchmark (Below Target)
+### Example 2a: AVL >= 7, P1 = GREEN, Meeting Benchmark (Exceeds Target by Large Amount)
 ```
 - AVL: 7.5
 - P1: GREEN
-- Target: 100, Tested: 95 (tested < target)
-- Status: YELLOW ✓ (Rule 2: Not meeting benchmark, acceptable but improve)
+- Target: 100, Tested: 103 (tested > target, difference = 3)
+- Status: GREEN ✓ (Rule 1: Tested exceeds target - always GREEN)
 ```
 
-### Example 2b: AVL >= 7, P1 = GREEN, NOT Meeting Benchmark (Exceeding Too Much)
+### Example 2b: AVL >= 7, P1 = GREEN, Meeting Benchmark (Within Tolerance Below)
 ```
 - AVL: 7.5
 - P1: GREEN
-- Target: 100, Tested: 103 (tested - target = 3 > 2)
-- Status: YELLOW ✓ (Rule 2: Exceeding benchmark by more than 2, not meeting)
+- Target: 100, Tested: 98 (tested < target, difference = 2 <= 2)
+- Status: GREEN ✓ (Rule 1: Within tolerance, difference <= 2)
 ```
 
-### Example 3: AVL >= 7, P1 = YELLOW, Meeting Benchmark
+### Example 3: AVL >= 7, P1 = GREEN, NOT Meeting Benchmark (Below Target Outside Tolerance)
+```
+- AVL: 7.5
+- P1: GREEN
+- Target: 100, Tested: 95 (tested < target, difference = 5 > 2)
+- Status: YELLOW ✓ (Rule 2: Not meeting benchmark, more than 2 units below)
+```
+
+### Example 4: AVL >= 7, P1 = YELLOW, Meeting Benchmark
 ```
 - AVL: 7.5
 - P1: YELLOW
@@ -149,15 +161,15 @@ This change ensures:
 - Status: YELLOW ✓ (Rule 3: P1 is YELLOW, always YELLOW)
 ```
 
-### Example 4: AVL >= 7, P1 = YELLOW, NOT Meeting Benchmark
+### Example 5: AVL >= 7, P1 = YELLOW, NOT Meeting Benchmark
 ```
 - AVL: 7.5
 - P1: YELLOW
-- Target: 100, Tested: 95 (tested < target)
+- Target: 100, Tested: 95 (tested < target, difference > 2)
 - Status: YELLOW ✓ (Rule 4: P1 is YELLOW, always YELLOW)
 ```
 
-### Example 5: AVL < 7, P1 = GREEN
+### Example 6: AVL < 7, P1 = GREEN
 ```
 - AVL: 6.5
 - P1: GREEN
@@ -165,7 +177,7 @@ This change ensures:
 - Status: RED ✓ (Rule 5: AVL < 7, always RED)
 ```
 
-### Example 6: P1 = RED, Meeting Benchmark
+### Example 7: P1 = RED, Meeting Benchmark
 ```
 - AVL: 7.5
 - P1: RED
@@ -173,7 +185,7 @@ This change ensures:
 - Status: RED ✓ (Rule 6: P1 is RED, always RED)
 ```
 
-### Example 7: No Benchmark Data
+### Example 8: No Benchmark Data
 ```
 - AVL: 7.5
 - P1: GREEN
@@ -181,7 +193,7 @@ This change ensures:
 - Status: GREEN ✓ (Rule 7: Ignore benchmark, evaluate on AVL and P1 only)
 ```
 
-### Example 8: Truly No Data
+### Example 9: Truly No Data
 ```
 - AVL: 7.0
 - P1: N/A

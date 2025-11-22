@@ -496,20 +496,22 @@ Private Function EvaluateStatus(avl As Double, p1 As String, benchDiff As Double
     ' Rule 1: AVL >= 7 AND P1 = GREEN AND meeting benchmark → GREEN
     ' Rule 2: AVL >= 7 AND P1 = GREEN AND NOT meeting benchmark → YELLOW
     
-    ' Meeting benchmark means: tested >= target AND (tested - target) <= 2
-    ' Not meeting: tested < target OR (tested - target) > 2
+    ' Meeting benchmark logic:
+    ' - If tested >= target → GREEN (always, regardless of how much it exceeds)
+    ' - If tested < target AND (target - tested) <= 2 → GREEN (within tolerance)
+    ' - If tested < target AND (target - tested) > 2 → YELLOW (not meeting)
     If testedVal >= targetVal Then
-        ' Tested meets or exceeds target, but check if exceeds by too much
-        If (testedVal - targetVal) > 2 Then
-            ' Exceeding target by more than 2 - not meeting benchmark
-            EvaluateStatus = "YELLOW"
-        Else
-            ' Meeting benchmark within acceptable range
-            EvaluateStatus = "GREEN"
-        End If
+        ' Tested meets or exceeds target - always GREEN
+        EvaluateStatus = "GREEN"
     Else
-        ' Not meeting benchmark: tested < target
-        EvaluateStatus = "YELLOW"
+        ' Tested below target - check if within tolerance
+        If (targetVal - testedVal) <= 2 Then
+            ' Within tolerance of 2 units below target
+            EvaluateStatus = "GREEN"
+        Else
+            ' More than 2 units below target - not meeting benchmark
+            EvaluateStatus = "YELLOW"
+        End If
     End If
 End Function
 
