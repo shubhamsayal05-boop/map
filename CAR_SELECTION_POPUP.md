@@ -147,10 +147,10 @@ Row 1:  | Op Code | Operation | ... | CarA | CarB | CarC | ...
 
 ### "No car names found" Error
 
-**Cause:** No car names detected in row 1
+**Cause:** No car names detected in row 2
 
 **Solutions:**
-- Ensure car names are in row 1
+- Ensure car names are in row 2 (row 1 typically has section headers)
 - Check they start from column H (or your configured start column)
 - Verify cells are not empty
 - Check sheet name matches "Sheet1" (or your configured name)
@@ -163,7 +163,7 @@ Row 1:  | Op Code | Operation | ... | CarA | CarB | CarC | ...
 - Copy-paste car name from the list shown in dialog
 - Check for extra spaces or typos
 - Ensure case matches exactly
-- Verify car name is in row 1 of data sheet
+- Verify car name is in row 2 of data sheet
 
 ### "Could not find data columns" Error
 
@@ -171,7 +171,7 @@ Row 1:  | Op Code | Operation | ... | CarA | CarB | CarC | ...
 
 **Solutions:**
 - Close and reopen workbook
-- Verify car names still exist in row 1
+- Verify car names still exist in row 2
 - Check worksheet hasn't been modified
 - Re-run evaluation from beginning
 

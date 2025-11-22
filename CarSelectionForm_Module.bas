@@ -62,7 +62,7 @@ Public Function ShowCarSelectionDialog() As Boolean
     
     If UBound(carNames) < 0 Then
         MsgBox "No car names found in the data sheet." & vbCrLf & vbCrLf & _
-               "Please ensure car names are in row 1, starting from column H.", _
+               "Please ensure car names are in row 2, starting from column H.", _
                vbExclamation, "No Cars Found"
         Exit Function
     End If
@@ -188,26 +188,51 @@ End Function
 ' ===================================================================
 
 ' GetAvailableCarNames
-' Scans row 1 of the worksheet for car names
+' Scans row 2 of the worksheet for car names (row 1 has section headers)
 ' Returns: Array of car names
 Private Function GetAvailableCarNames(ws As Worksheet) As String()
     Dim carNames() As String
     Dim col As Integer
     Dim carName As String
     Dim count As Integer
+    Dim lastCol As Integer
     
     ReDim carNames(0)
     count = 0
     
-    ' Scan from CAR_DATA_START_COL to end of data
+    ' Find last column with data
+    lastCol = ws.Cells(2, ws.Columns.count).End(xlToLeft).Column
+    
+    ' Scan from CAR_DATA_START_COL to last column with data
+    ' Car names are in row 2 (row 1 has section headers like "Drivability", "Responsiveness")
     col = CAR_DATA_START_COL
-    Do While col <= ws.UsedRange.Columns.count + ws.UsedRange.Column - 1
-        carName = Trim(ws.Cells(1, col).Value)
+    Do While col <= lastCol
+        carName = Trim(ws.Cells(2, col).Value)
         
-        If carName <> "" Then
-            ReDim Preserve carNames(count)
-            carNames(count) = carName
-            count = count + 1
+        ' Only add if it's a valid car name (not empty, not a section header)
+        ' Skip if it contains "Status" or other common header words
+        If carName <> "" And _
+           InStr(1, carName, "Status", vbTextCompare) = 0 And _
+           InStr(1, carName, "P1", vbTextCompare) = 0 And _
+           InStr(1, carName, "P2", vbTextCompare) = 0 And _
+           InStr(1, carName, "P3", vbTextCompare) = 0 Then
+            
+            ' Check if this car name already added (avoid duplicates)
+            Dim alreadyAdded As Boolean
+            Dim i As Integer
+            alreadyAdded = False
+            For i = 0 To count - 1
+                If carNames(i) = carName Then
+                    alreadyAdded = True
+                    Exit For
+                End If
+            Next i
+            
+            If Not alreadyAdded Then
+                ReDim Preserve carNames(count)
+                carNames(count) = carName
+                count = count + 1
+            End If
         End If
         
         col = col + 1
@@ -242,18 +267,23 @@ Private Function IsCarNameValid(carName As String, carNames() As String) As Bool
 End Function
 
 ' FindCarColumn
-' Finds the column number for a specific car name
+' Finds the column number for a specific car name (looks in row 2)
 ' Returns: Column number or 0 if not found
 Private Function FindCarColumn(ws As Worksheet, carName As String) As Integer
     Dim col As Integer
     Dim cellValue As String
+    Dim lastCol As Integer
     
     FindCarColumn = 0
     
-    ' Scan from CAR_DATA_START_COL to end of data
+    ' Find last column with data
+    lastCol = ws.Cells(2, ws.Columns.count).End(xlToLeft).Column
+    
+    ' Scan from CAR_DATA_START_COL to last column
+    ' Car names are in row 2 (row 1 has section headers)
     col = CAR_DATA_START_COL
-    Do While col <= ws.UsedRange.Columns.count + ws.UsedRange.Column - 1
-        cellValue = Trim(ws.Cells(1, col).Value)
+    Do While col <= lastCol
+        cellValue = Trim(ws.Cells(2, col).Value)
         
         If cellValue = Trim(carName) Then
             FindCarColumn = col
