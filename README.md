@@ -1,11 +1,13 @@
 # AVLDrive Heatmap Tool
 
-This repository contains the AVLDrive Heatmap Tool Excel workbook and a Python script to automatically update the HeatMap sheet with evaluation results.
+This repository contains the AVLDrive Heatmap Tool Excel workbook and automation tools to update the HeatMap sheet with evaluation results.
 
 ## Files
 
 - `AVLDrive_Heatmap_Tool version3.2.xlsm` - The main Excel workbook containing evaluation data and heatmap visualizations
 - `update_heatmap_status.py` - Python script to transfer evaluation results to the heatmap status column
+- `UpdateHeatMapStatus.vba` - VBA code for Excel button automation
+- `VBA_INSTALLATION_GUIDE.md` - Step-by-step guide to install VBA code in Excel
 
 ## Overview
 
@@ -14,7 +16,23 @@ The Excel workbook contains two main sheets:
 1. **Evaluation Results** - Contains detailed evaluation data for various operations and sub-operations with final status ratings (RED, YELLOW, GREEN, N/A)
 2. **HeatMap Sheet** - Contains a visual heatmap of operations with a Status column that needs to be populated from the evaluation results
 
-## Usage
+## Usage Options
+
+You can update the HeatMap Status column using either:
+- **Option A**: VBA Macro (directly in Excel) - **Recommended for end users**
+- **Option B**: Python Script (command line) - For automation and batch processing
+
+### Option A: VBA Macro (In Excel)
+
+**Best for**: Users who want to click a button directly in Excel
+
+1. Follow the instructions in `VBA_INSTALLATION_GUIDE.md` to install the VBA code
+2. Click the "Update HeatMap Status" button in the HeatMap Sheet
+3. The Status column will be automatically updated
+
+See `VBA_INSTALLATION_GUIDE.md` for complete installation steps.
+
+### Option B: Python Script
 
 ### Prerequisites
 
