@@ -86,9 +86,27 @@ For Op Code `10040300` (Tip out at constant speed):
 
 ## Troubleshooting
 
+### "Compile Error: Block If without End If"
+
+**Solution**: This error occurs if the code wasn't copied completely or was modified during pasting. 
+
+**Fix:**
+1. Delete the current module (right-click on the module in VBA Editor → Remove)
+2. Create a new module (Insert → Module)
+3. Open `UpdateHeatMapStatus.vba` in Notepad (NOT Word or Excel)
+4. Press Ctrl+A to select ALL code
+5. Press Ctrl+C to copy
+6. Go back to VBA Editor
+7. Click in the empty module
+8. Press Ctrl+V to paste
+9. Verify the code looks correct (no missing lines)
+10. Save and close VBA Editor
+
+**Important**: Do NOT type or modify the code manually. Copy-paste the entire file exactly as-is.
+
 ### "Compile Error" when running the macro
 
-**Solution**: Make sure you copied ALL the code, including the `Option Explicit` at the top.
+**Solution**: Make sure you copied ALL the code, including the `Option Explicit` at the top and all `End If`, `End Sub`, and `End Function` statements at the bottom of each block.
 
 ### "Method 'Worksheets' failed"
 

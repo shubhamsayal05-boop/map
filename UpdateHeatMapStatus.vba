@@ -95,8 +95,8 @@ Public Sub UpdateHeatMapStatus()
                 evalData(opCodeStr) = evalData(opCodeStr) & "|" & finalStatus
             Else
                 evalData.Add opCodeStr, finalStatus
-            End If
-        End If
+            End If  ' End of evalData.Exists check
+        End If  ' End of IsEmpty and IsNumeric check
     Next row
     
     ' Update HeatMap Sheet
@@ -125,8 +125,8 @@ Public Sub UpdateHeatMapStatus()
                 updatesCount = updatesCount + 1
             Else
                 noMatchCount = noMatchCount + 1
-            End If
-        End If
+            End If  ' End of evalData.Exists check
+        End If  ' End of IsEmpty and IsNumeric check
     Next row
     
     ' Show summary message
