@@ -15,18 +15,34 @@ from collections import defaultdict
 import sys
 import os
 
+# Column constants for Evaluation Results sheet
+EVAL_OP_CODE_COLUMN = 1
+EVAL_OPERATION_COLUMN = 2
+EVAL_FINAL_STATUS_COLUMN = 12
+
+# Column constants for HeatMap Sheet
+HEATMAP_OP_CODE_COLUMN = 1
+HEATMAP_OPERATION_COLUMN = 2
+HEATMAP_STATUS_COLUMN = 18
+
+# Row constants
+EVAL_DATA_START_ROW = 2
+HEATMAP_DATA_START_ROW = 4
+
 
 def get_status_priority(status):
     """
     Return priority for status values. Lower number = worse status.
     RED is worst, GREEN is best, N/A is neutral.
     """
-    if not status or status == 'N/A' or status is None:
-        return 3  # Neutral
+    if not status:
+        return 3  # Neutral (None or empty)
     
     status_str = str(status).upper().strip()
     
-    if status_str == 'RED':
+    if status_str == 'N/A':
+        return 3  # Neutral
+    elif status_str == 'RED':
         return 0  # Worst
     elif status_str == 'YELLOW':
         return 1  # Medium
@@ -43,7 +59,10 @@ def determine_final_status(statuses):
     If all are N/A or None, returns None.
     """
     # Filter out None and N/A values
-    valid_statuses = [s for s in statuses if s and str(s).upper().strip() != 'N/A']
+    valid_statuses = []
+    for s in statuses:
+        if s is not None and str(s).upper().strip() != 'N/A':
+            valid_statuses.append(s)
     
     if not valid_statuses:
         return None  # No valid status found
@@ -80,10 +99,10 @@ def update_heatmap_with_evaluations(input_file, output_file=None):
     eval_by_opcode = defaultdict(list)
     
     print("\nReading Evaluation Results...")
-    for row_num in range(2, ws_eval.max_row + 1):
-        op_code = ws_eval.cell(row=row_num, column=1).value
-        operation = ws_eval.cell(row=row_num, column=2).value
-        final_status = ws_eval.cell(row=row_num, column=12).value  # Column L
+    for row_num in range(EVAL_DATA_START_ROW, ws_eval.max_row + 1):
+        op_code = ws_eval.cell(row=row_num, column=EVAL_OP_CODE_COLUMN).value
+        operation = ws_eval.cell(row=row_num, column=EVAL_OPERATION_COLUMN).value
+        final_status = ws_eval.cell(row=row_num, column=EVAL_FINAL_STATUS_COLUMN).value
         
         # Only process rows with valid op codes
         if op_code and isinstance(op_code, (int, float)):
@@ -98,15 +117,14 @@ def update_heatmap_with_evaluations(input_file, output_file=None):
     
     # Update HeatMap Sheet
     ws_heatmap = wb['HeatMap Sheet']
-    STATUS_COLUMN = 18  # Column R
     
     print("\nUpdating HeatMap Sheet Status column...")
     updates_made = 0
     no_match_count = 0
     
-    for row_num in range(4, ws_heatmap.max_row + 1):
-        op_code = ws_heatmap.cell(row=row_num, column=1).value
-        operation = ws_heatmap.cell(row=row_num, column=2).value
+    for row_num in range(HEATMAP_DATA_START_ROW, ws_heatmap.max_row + 1):
+        op_code = ws_heatmap.cell(row=row_num, column=HEATMAP_OP_CODE_COLUMN).value
+        operation = ws_heatmap.cell(row=row_num, column=HEATMAP_OPERATION_COLUMN).value
         
         if not op_code or not operation:
             continue
@@ -124,8 +142,9 @@ def update_heatmap_with_evaluations(input_file, output_file=None):
                 final_status = determine_final_status(statuses)
                 
                 # Update the cell
-                current_value = ws_heatmap.cell(row=row_num, column=STATUS_COLUMN).value
-                ws_heatmap.cell(row=row_num, column=STATUS_COLUMN).value = final_status
+                status_cell = ws_heatmap.cell(row=row_num, column=HEATMAP_STATUS_COLUMN)
+                current_value = status_cell.value
+                status_cell.value = final_status
                 
                 updates_made += 1
                 print(f"  Row {row_num}: {op_code} | {operation}")
