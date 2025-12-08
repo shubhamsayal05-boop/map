@@ -103,6 +103,8 @@ Public Sub UpdateHeatMapStatus()
     lastRow = wsHeatmap.Cells(wsHeatmap.Rows.Count, HEATMAP_OP_CODE_COLUMN).End(xlUp).row
     updatesCount = 0
     noMatchCount = 0
+    Dim noMatchDetails As String
+    noMatchDetails = ""
     
     For row = HEATMAP_DATA_START_ROW To lastRow
         opCode = wsHeatmap.Cells(row, HEATMAP_OP_CODE_COLUMN).Value
@@ -125,15 +127,31 @@ Public Sub UpdateHeatMapStatus()
                 updatesCount = updatesCount + 1
             Else
                 noMatchCount = noMatchCount + 1
+                ' Store details of unmatched operations (limit to first 10)
+                If noMatchCount <= 10 Then
+                    noMatchDetails = noMatchDetails & vbCrLf & "  • " & opCode & " - " & operation
+                ElseIf noMatchCount = 11 Then
+                    noMatchDetails = noMatchDetails & vbCrLf & "  • ... and more"
+                End If
             End If  ' End of evalData.Exists check
         End If  ' End of IsEmpty and IsNumeric check
     Next row
     
     ' Show summary message
-    MsgBox "Update Complete!" & vbCrLf & vbCrLf & _
-           "Updated: " & updatesCount & " operations" & vbCrLf & _
-           "No match: " & noMatchCount & " operations", _
-           vbInformation, "Update Status"
+    Dim summaryMsg As String
+    summaryMsg = "Update Complete!" & vbCrLf & vbCrLf & _
+                 "✓ Updated: " & updatesCount & " operations" & vbCrLf & _
+                 "✗ No match: " & noMatchCount & " operations"
+    
+    If noMatchCount > 0 Then
+        summaryMsg = summaryMsg & vbCrLf & vbCrLf & _
+                    "Operations with no matching evaluation data:" & _
+                    noMatchDetails & vbCrLf & vbCrLf & _
+                    "Note: These are parent-level operations without" & vbCrLf & _
+                    "detailed sub-operation evaluations in the results sheet."
+    End If
+    
+    MsgBox summaryMsg, vbInformation, "Update Status"
     
 CleanUp:
     ' Re-enable screen updating

@@ -54,14 +54,33 @@ After clicking the button, you should see:
 - A message box showing:
   - Number of operations updated
   - Number of operations with no matching evaluation
+  - List of operations that couldn't be matched
 
 Example:
 ```
 Update Complete!
 
-Updated: 28 operations
-No match: 18 operations
+✓ Updated: 28 operations
+✗ No match: 18 operations
+
+Operations with no matching evaluation data:
+  • 10000000 - AVL-DRIVE Rating
+  • 10100000 - Drive away
+  • 10120000 - Acceleration
+  ... and more
+
+Note: These are parent-level operations without
+detailed sub-operation evaluations in the results sheet.
 ```
+
+### Understanding "No Match" Operations
+
+The "No match" operations are **parent-level summary operations** in the HeatMap that don't have corresponding detailed evaluation entries. For example:
+- **10120200 - "Constant load"** under "Acceleration" → **MATCHED** ✓ (has "Accel Cst Load" in Evaluation Results)
+- **10080100 - "Constant load"** under "Constant speed" → **MATCHED** ✓ (has "Cst Speed Cst Load" in Evaluation Results)
+- **10080000 - "Constant speed"** (parent) → **NO MATCH** ✗ (no detailed evaluations for this parent operation)
+
+This is normal and expected - parent-level operations serve as category headers and don't need status values.
 
 ## How It Works
 
