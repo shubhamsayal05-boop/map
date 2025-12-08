@@ -3,9 +3,11 @@ Option Explicit
 ' ============================================================================
 ' Module: UpdateHeatMapStatus
 ' Purpose: Update HeatMap Sheet Status column with evaluation results
-' Author: GitHub Copilot
 ' Date: 2025-12-08
 ' ============================================================================
+
+' Priority constants
+Private Const NO_VALID_STATUS_PRIORITY As Long = 999
 
 ' Column constants for Evaluation Results sheet
 Private Const EVAL_OP_CODE_COLUMN As Long = 1
@@ -46,20 +48,31 @@ Public Sub UpdateHeatMapStatus()
     Set wb = ThisWorkbook
     
     ' Check if required sheets exist
+    Dim sheetExists As Boolean
+    
+    ' Check for Evaluation Results sheet
+    sheetExists = False
     On Error Resume Next
-    Set wsEval = wb.Worksheets("Evaluation Results")
-    Set wsHeatmap = wb.Worksheets("HeatMap Sheet")
+    sheetExists = (wb.Worksheets("Evaluation Results").Name <> "")
     On Error GoTo ErrorHandler
     
-    If wsEval Is Nothing Then
+    If Not sheetExists Then
         MsgBox "Error: 'Evaluation Results' sheet not found!", vbCritical, "Update Status"
         GoTo CleanUp
     End If
+    Set wsEval = wb.Worksheets("Evaluation Results")
     
-    If wsHeatmap Is Nothing Then
+    ' Check for HeatMap Sheet
+    sheetExists = False
+    On Error Resume Next
+    sheetExists = (wb.Worksheets("HeatMap Sheet").Name <> "")
+    On Error GoTo ErrorHandler
+    
+    If Not sheetExists Then
         MsgBox "Error: 'HeatMap Sheet' not found!", vbCritical, "Update Status"
         GoTo CleanUp
     End If
+    Set wsHeatmap = wb.Worksheets("HeatMap Sheet")
     
     ' Create dictionary for evaluation data
     Set evalData = CreateObject("Scripting.Dictionary")
@@ -152,7 +165,7 @@ Private Function DetermineWorstStatus(statusList As String) As String
     statuses = Split(statusList, "|")
     
     ' Initialize with worst possible priority
-    worstPriority = 999
+    worstPriority = NO_VALID_STATUS_PRIORITY
     worstStatus = ""
     
     ' Find the worst status
@@ -168,7 +181,7 @@ Private Function DetermineWorstStatus(statusList As String) As String
     Next i
     
     ' Return empty string if no valid status found
-    If worstPriority = 999 Then
+    If worstPriority = NO_VALID_STATUS_PRIORITY Then
         DetermineWorstStatus = ""
     Else
         DetermineWorstStatus = worstStatus
