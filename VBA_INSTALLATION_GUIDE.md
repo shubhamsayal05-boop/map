@@ -50,7 +50,10 @@ The VBA code will automate the process of:
 ## Expected Results
 
 After clicking the button, you should see:
-- **Status column (Column R)** populated with RED, YELLOW, or GREEN values
+- **Status column (Column R)** populated with colored dots and text:
+  - **● NOK** (red) for failed operations
+  - **● Acceptable** (orange/yellow) for marginal operations
+  - **● OK** (green) for passed operations
 - A message box showing:
   - Number of operations updated
   - Number of operations with no matching evaluation
@@ -84,24 +87,31 @@ This is normal and expected - parent-level operations serve as category headers 
 
 ## How It Works
 
+### Status Format
+
+The macro displays status values with colored dots and text labels:
+- **RED** → **● NOK** (displayed in red)
+- **YELLOW** → **● Acceptable** (displayed in orange/yellow)
+- **GREEN** → **● OK** (displayed in green)
+
 ### Status Priority Logic
 
 The macro determines the worst status among multiple sub-operations:
 
-1. **RED** = Priority 0 (Worst)
-2. **YELLOW** = Priority 1 (Medium)
-3. **GREEN** = Priority 2 (Good)
+1. **RED** = Priority 0 (Worst) → **● NOK**
+2. **YELLOW** = Priority 1 (Medium) → **● Acceptable**
+3. **GREEN** = Priority 2 (Good) → **● OK**
 4. **N/A** or empty = Priority 3 (Ignored)
 
 ### Example
 
 For Op Code `10101300` (Creep):
 - Sub-operations: "RED", "N/A", "YELLOW", "N/A"
-- **Final Status**: **RED** (worst status wins)
+- **Final Status**: **● NOK** (worst status wins, displayed in red)
 
 For Op Code `10040300` (Tip out at constant speed):
 - Sub-operations: "GREEN"
-- **Final Status**: **GREEN**
+- **Final Status**: **● OK** (displayed in green)
 
 ## Troubleshooting
 

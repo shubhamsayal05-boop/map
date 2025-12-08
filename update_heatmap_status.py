@@ -72,6 +72,46 @@ def determine_final_status(statuses):
     return worst_status
 
 
+def format_status_with_dot(status):
+    """
+    Convert status to formatted text with colored dot.
+    RED -> "● NOK", YELLOW -> "● Acceptable", GREEN -> "● OK"
+    """
+    if not status:
+        return None
+    
+    status_str = str(status).upper().strip()
+    
+    if status_str == 'RED':
+        return '● NOK'
+    elif status_str == 'YELLOW':
+        return '● Acceptable'
+    elif status_str == 'GREEN':
+        return '● OK'
+    else:
+        return None
+
+
+def apply_status_color(cell, status):
+    """
+    Apply color formatting to status cell.
+    """
+    if not status:
+        return
+    
+    status_str = str(status).upper().strip()
+    
+    # Import Font and Color from openpyxl.styles
+    from openpyxl.styles import Font, Color
+    
+    if status_str == 'RED':
+        cell.font = Font(color='FF0000')  # Red
+    elif status_str == 'YELLOW':
+        cell.font = Font(color='FFC000')  # Orange/Yellow
+    elif status_str == 'GREEN':
+        cell.font = Font(color='00B050')  # Green
+
+
 def update_heatmap_with_evaluations(input_file, output_file=None):
     """
     Update the HeatMap Sheet with evaluation results.
@@ -141,16 +181,22 @@ def update_heatmap_with_evaluations(input_file, output_file=None):
                 # Determine final status
                 final_status = determine_final_status(statuses)
                 
+                # Format status with colored dot
+                formatted_status = format_status_with_dot(final_status)
+                
                 # Update the cell
                 status_cell = ws_heatmap.cell(row=row_num, column=HEATMAP_STATUS_COLUMN)
                 current_value = status_cell.value
-                status_cell.value = final_status
+                status_cell.value = formatted_status
+                
+                # Apply color formatting
+                apply_status_color(status_cell, final_status)
                 
                 updates_made += 1
                 print(f"  Row {row_num}: {op_code} | {operation}")
                 print(f"    Sub-operations: {len(eval_by_opcode[op_code_int])}")
                 print(f"    Statuses: {statuses}")
-                print(f"    Final Status: {current_value} => {final_status}")
+                print(f"    Final Status: {current_value} => {formatted_status}")
             else:
                 no_match_count += 1
                 print(f"  Row {row_num}: {op_code} | {operation} - No matching evaluation")

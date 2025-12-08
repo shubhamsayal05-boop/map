@@ -122,8 +122,16 @@ Public Sub UpdateHeatMapStatus()
                 statusList = evalData(opCodeStr2)
                 worstStatus = DetermineWorstStatus(statusList)
                 
+                ' Convert status to formatted text with colored dot
+                Dim formattedStatus As String
+                formattedStatus = FormatStatusWithDot(worstStatus)
+                
                 ' Update the cell
-                wsHeatmap.Cells(row, HEATMAP_STATUS_COLUMN).Value = worstStatus
+                wsHeatmap.Cells(row, HEATMAP_STATUS_COLUMN).Value = formattedStatus
+                
+                ' Apply color formatting to the cell
+                ApplyStatusColor wsHeatmap.Cells(row, HEATMAP_STATUS_COLUMN), worstStatus
+                
                 updatesCount = updatesCount + 1
             Else
                 noMatchCount = noMatchCount + 1
@@ -205,6 +213,59 @@ Private Function DetermineWorstStatus(statusList As String) As String
         DetermineWorstStatus = worstStatus
     End If
 End Function
+
+' ============================================================================
+' Function: FormatStatusWithDot
+' Purpose: Convert status to formatted text with colored dot
+' Parameters: status - Status string (RED, YELLOW, GREEN)
+' Returns: Formatted string with dot and label
+' ============================================================================
+Private Function FormatStatusWithDot(status As String) As String
+    Dim statusUpper As String
+    
+    If status = "" Or IsEmpty(status) Then
+        FormatStatusWithDot = ""
+        Exit Function
+    End If
+    
+    statusUpper = UCase(Trim(status))
+    
+    Select Case statusUpper
+        Case "RED"
+            FormatStatusWithDot = "● NOK"
+        Case "YELLOW"
+            FormatStatusWithDot = "● Acceptable"
+        Case "GREEN"
+            FormatStatusWithDot = "● OK"
+        Case Else
+            FormatStatusWithDot = ""
+    End Select
+End Function
+
+' ============================================================================
+' Subroutine: ApplyStatusColor
+' Purpose: Apply color formatting to status cell
+' Parameters: cell - Cell to format, status - Status string
+' ============================================================================
+Private Sub ApplyStatusColor(cell As Range, status As String)
+    Dim statusUpper As String
+    
+    If status = "" Or IsEmpty(status) Then
+        Exit Sub
+    End If
+    
+    statusUpper = UCase(Trim(status))
+    
+    ' Set font color based on status
+    Select Case statusUpper
+        Case "RED"
+            cell.Font.Color = RGB(255, 0, 0)  ' Red
+        Case "YELLOW"
+            cell.Font.Color = RGB(255, 192, 0)  ' Orange/Yellow
+        Case "GREEN"
+            cell.Font.Color = RGB(0, 176, 80)  ' Green
+    End Select
+End Sub
 
 ' ============================================================================
 ' Function: GetStatusPriority

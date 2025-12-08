@@ -74,26 +74,36 @@ The script matches operations between sheets using the **Op Code** field:
 - The Evaluation Results sheet contains multiple sub-operations for each Op Code
 - The script finds all sub-operations that match a given Op Code
 
+### Status Format
+
+The tool displays status values with colored dots and text labels:
+- **RED** → **● NOK** (displayed in red color)
+- **YELLOW** → **● Acceptable** (displayed in orange/yellow color)
+- **GREEN** → **● OK** (displayed in green color)
+
 ### Status Determination
 
 When multiple sub-operations exist for an Op Code, the script determines the final status by selecting the **worst status**:
 
-1. **RED** - Worst (highest priority)
-2. **YELLOW** - Medium
-3. **GREEN** - Good (lowest priority)
+1. **RED** → **● NOK** - Worst (highest priority)
+2. **YELLOW** → **● Acceptable** - Medium
+3. **GREEN** → **● OK** - Good (lowest priority)
 4. **N/A** or **None** - Ignored (not considered in the worst status calculation)
 
 For example:
-- If sub-operations have statuses: RED, YELLOW, N/A → Final status: **RED**
-- If sub-operations have statuses: YELLOW, GREEN, N/A → Final status: **YELLOW**
-- If sub-operations have statuses: GREEN, N/A, N/A → Final status: **GREEN**
-- If all sub-operations have N/A or None → Final status: **None**
+- If sub-operations have statuses: RED, YELLOW, N/A → Final status: **● NOK** (red)
+- If sub-operations have statuses: YELLOW, GREEN, N/A → Final status: **● Acceptable** (orange/yellow)
+- If sub-operations have statuses: GREEN, N/A, N/A → Final status: **● OK** (green)
+- If all sub-operations have N/A or None → Final status: **None** (empty)
 
 ### Results
 
 After running the script on version 3.2:
-- **28 operations** were updated with status values
-- **18 operations** had no matching evaluations (remain as None/empty)
+- **28 operations** were updated with colored status values:
+  - **12 operations** → **● NOK** (red)
+  - **9 operations** → **● Acceptable** (orange/yellow)
+  - **1 operation** → **● OK** (green)
+- **18 operations** had no matching evaluations (remain as None/empty - these are parent-level categories)
 
 ## Example Output
 
