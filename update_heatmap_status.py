@@ -29,6 +29,12 @@ RED_COLOR = "FF0000"
 GREEN_COLOR = "00FF00"
 YELLOW_COLOR = "FFFF00"
 
+# Column indices (0-based)
+OPCODE_COLUMN = 0           # Column A
+OPERATION_COLUMN = 1        # Column B
+FINAL_STATUS_COLUMN = 11    # Column L (in Evaluation Results sheet)
+STATUS_COLUMN = 17          # Column R (in HeatMap Sheet)
+
 def is_parent_operation(opcode):
     """
     Determine if an OpCode is a parent operation.
@@ -171,9 +177,9 @@ def main():
     eval_results = defaultdict(list)
     
     for row in eval_sheet.iter_rows(min_row=2, max_row=eval_sheet.max_row, values_only=True):
-        opcode = normalize_opcode(row[0])
-        operation = row[1]
-        final_status = row[11]  # Column L
+        opcode = normalize_opcode(row[OPCODE_COLUMN])
+        operation = row[OPERATION_COLUMN]
+        final_status = row[FINAL_STATUS_COLUMN]
         
         if opcode and final_status and final_status not in ["N/A", None]:
             eval_results[opcode].append({
@@ -200,9 +206,9 @@ def main():
     sub_op_count = 0
     for row_idx in range(4, heatmap_sheet.max_row + 1):
         row = list(heatmap_sheet.iter_rows(min_row=row_idx, max_row=row_idx, values_only=False))[0]
-        opcode_cell = row[0]
+        opcode_cell = row[OPCODE_COLUMN]
         opcode = normalize_opcode(opcode_cell.value)
-        status_cell = row[17]  # Column R (index 17)
+        status_cell = row[STATUS_COLUMN]
         
         if not opcode:
             continue
@@ -236,7 +242,7 @@ def main():
     parent_op_count = 0
     for row_idx, parent_opcode in parent_operations.items():
         row = list(heatmap_sheet.iter_rows(min_row=row_idx, max_row=row_idx, values_only=False))[0]
-        status_cell = row[17]  # Column R (index 17)
+        status_cell = row[STATUS_COLUMN]
         
         # Get all sub-operation statuses for this parent
         sub_statuses = sub_operations_by_parent.get(parent_opcode, [])
