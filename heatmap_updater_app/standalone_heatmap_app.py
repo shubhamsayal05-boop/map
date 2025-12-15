@@ -138,13 +138,17 @@ class Database:
         cursor = self.conn.cursor()
         cursor.execute('''
             UPDATE evaluations SET
-                operation_name = ?, tested_avl = ?, driv_status = ?,
-                resp_status = ?, final_status = ?
+                opcode = ?, operation_name = ?, tested_avl = ?, 
+                driv_p1 = ?, driv_target = ?, driv_tested = ?, driv_status = ?,
+                resp_p1 = ?, resp_target = ?, resp_tested = ?, resp_status = ?,
+                final_status = ?
             WHERE id = ?
         ''', (
-            data['operation'], data.get('tested_avl'),
-            data.get('driv_status'), data.get('resp_status'),
-            data.get('final_status'), eval_id
+            data['opcode'], data['operation'], data.get('tested_avl'),
+            data.get('driv_p1'), data.get('driv_target'), data.get('driv_tested'),
+            data.get('driv_status'), data.get('resp_p1'), data.get('resp_target'),
+            data.get('resp_tested'), data.get('resp_status'), data.get('final_status'),
+            eval_id
         ))
         self.conn.commit()
     
@@ -170,6 +174,11 @@ class Database:
     
     def clear_data(self, table_name):
         """Clear all data from a table"""
+        # Whitelist of allowed tables to prevent SQL injection
+        allowed_tables = ['operations', 'evaluations', 'heatmap_results']
+        if table_name not in allowed_tables:
+            raise ValueError(f"Invalid table name: {table_name}")
+        
         cursor = self.conn.cursor()
         cursor.execute(f'DELETE FROM {table_name}')
         self.conn.commit()
@@ -474,7 +483,87 @@ class StandaloneHeatMapApp:
         values = item['values']
         eval_id = values[0]
         
-        messagebox.showinfo("Edit", f"Edit dialog for evaluation ID {eval_id} (implementation pending)")
+        # Get full evaluation data from database
+        cursor = self.db.conn.cursor()
+        cursor.execute('SELECT * FROM evaluations WHERE id = ?', (eval_id,))
+        eval_data = cursor.fetchone()
+        
+        if not eval_data:
+            messagebox.showerror("Error", "Evaluation not found")
+            return
+        
+        # Create edit dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Edit Evaluation")
+        dialog.geometry("500x450")
+        
+        # Form fields with current values
+        ttk.Label(dialog, text="OpCode:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
+        opcode_entry = ttk.Entry(dialog, width=30)
+        opcode_entry.insert(0, eval_data[1] or '')
+        opcode_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(dialog, text="Operation:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
+        operation_entry = ttk.Entry(dialog, width=30)
+        operation_entry.insert(0, eval_data[2] or '')
+        operation_entry.grid(row=1, column=1, padx=5, pady=5)
+        
+        ttk.Label(dialog, text="Tested AVL:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+        avl_entry = ttk.Entry(dialog, width=30)
+        avl_entry.insert(0, eval_data[3] or '')
+        avl_entry.grid(row=2, column=1, padx=5, pady=5)
+        
+        ttk.Label(dialog, text="Driv P1:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
+        driv_p1_entry = ttk.Entry(dialog, width=30)
+        driv_p1_entry.insert(0, eval_data[4] or '')
+        driv_p1_entry.grid(row=3, column=1, padx=5, pady=5)
+        
+        ttk.Label(dialog, text="Driv Status:").grid(row=4, column=0, sticky=tk.W, padx=5, pady=5)
+        driv_status_combo = ttk.Combobox(dialog, values=['GREEN', 'YELLOW', 'RED', 'N/A'], width=28)
+        driv_status_combo.set(eval_data[7] or 'N/A')
+        driv_status_combo.grid(row=4, column=1, padx=5, pady=5)
+        
+        ttk.Label(dialog, text="Resp P1:").grid(row=5, column=0, sticky=tk.W, padx=5, pady=5)
+        resp_p1_entry = ttk.Entry(dialog, width=30)
+        resp_p1_entry.insert(0, eval_data[8] or '')
+        resp_p1_entry.grid(row=5, column=1, padx=5, pady=5)
+        
+        ttk.Label(dialog, text="Resp Status:").grid(row=6, column=0, sticky=tk.W, padx=5, pady=5)
+        resp_status_combo = ttk.Combobox(dialog, values=['GREEN', 'YELLOW', 'RED', 'N/A'], width=28)
+        resp_status_combo.set(eval_data[11] or 'N/A')
+        resp_status_combo.grid(row=6, column=1, padx=5, pady=5)
+        
+        ttk.Label(dialog, text="Final Status:").grid(row=7, column=0, sticky=tk.W, padx=5, pady=5)
+        final_status_combo = ttk.Combobox(dialog, values=['GREEN', 'YELLOW', 'RED', 'N/A'], width=28)
+        final_status_combo.set(eval_data[12] or 'N/A')
+        final_status_combo.grid(row=7, column=1, padx=5, pady=5)
+        
+        def save_changes():
+            data = {
+                'opcode': opcode_entry.get(),
+                'operation': operation_entry.get(),
+                'tested_avl': avl_entry.get() or None,
+                'driv_p1': driv_p1_entry.get() or None,
+                'driv_target': None,  # Not editing these fields in simple dialog
+                'driv_tested': None,
+                'driv_status': driv_status_combo.get() or None,
+                'resp_p1': resp_p1_entry.get() or None,
+                'resp_target': None,
+                'resp_tested': None,
+                'resp_status': resp_status_combo.get() or None,
+                'final_status': final_status_combo.get() or None
+            }
+            
+            if not data['opcode'] or not data['operation']:
+                messagebox.showerror("Error", "OpCode and Operation are required!")
+                return
+            
+            self.db.update_evaluation(eval_id, data)
+            self.refresh_data_grid()
+            dialog.destroy()
+            messagebox.showinfo("Success", "Evaluation updated!")
+        
+        ttk.Button(dialog, text="Save Changes", command=save_changes).grid(row=8, column=0, columnspan=2, pady=20)
     
     def delete_evaluation(self):
         """Delete selected evaluation"""
