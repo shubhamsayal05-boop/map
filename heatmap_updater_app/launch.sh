@@ -26,6 +26,15 @@ echo "Python version: $PYTHON_VERSION"
 if ! python3 -c "import openpyxl" &> /dev/null; then
     echo ""
     echo "WARNING: openpyxl is not installed"
+    
+    # Check if pip3 is available
+    if ! command -v pip3 &> /dev/null; then
+        echo "ERROR: pip3 is not installed"
+        echo "Please install pip3 or install openpyxl manually"
+        read -p "Press Enter to exit..."
+        exit 1
+    fi
+    
     echo "Attempting to install dependencies..."
     echo ""
     pip3 install -r requirements.txt
@@ -33,7 +42,7 @@ if ! python3 -c "import openpyxl" &> /dev/null; then
     if [ $? -ne 0 ]; then
         echo ""
         echo "ERROR: Failed to install dependencies"
-        echo "Please run: pip3 install -r requirements.txt"
+        echo "Please run manually: pip3 install -r requirements.txt"
         read -p "Press Enter to exit..."
         exit 1
     fi

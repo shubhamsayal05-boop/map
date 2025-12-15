@@ -517,8 +517,12 @@ class HeatMapUpdaterGUI:
             
             # First pass: Update sub-operations
             total_rows = heatmap_sheet.max_row - 3
-            for idx, row_idx in enumerate(range(4, heatmap_sheet.max_row + 1)):
-                row = list(heatmap_sheet.iter_rows(min_row=row_idx, max_row=row_idx, values_only=False))[0]
+            
+            # Iterate through all rows at once for efficiency
+            all_rows = list(heatmap_sheet.iter_rows(min_row=4, max_row=heatmap_sheet.max_row, values_only=False))
+            
+            for idx, row in enumerate(all_rows):
+                row_idx = idx + 4  # Adjust for starting at row 4
                 opcode = self._normalize_opcode(row[OPCODE_COLUMN].value)
                 status_cell = row[STATUS_COLUMN]
                 
@@ -646,6 +650,10 @@ class HeatMapUpdaterGUI:
         try:
             if opcode is None:
                 return None
+            # Check if already an integer to avoid unnecessary conversions
+            if isinstance(opcode, int):
+                return str(opcode)
+            # Convert float or string to integer
             return str(int(float(opcode)))
         except (ValueError, TypeError):
             return None

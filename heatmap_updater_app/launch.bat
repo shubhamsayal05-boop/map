@@ -29,6 +29,16 @@ REM Check if openpyxl is installed
 python -c "import openpyxl" >nul 2>&1
 if errorlevel 1 (
     echo WARNING: openpyxl is not installed
+    
+    REM Check if pip is available
+    pip --version >nul 2>&1
+    if errorlevel 1 (
+        echo ERROR: pip is not installed
+        echo Please install pip or install openpyxl manually
+        pause
+        exit /b 1
+    )
+    
     echo Attempting to install dependencies...
     echo.
     pip install -r requirements.txt
@@ -36,7 +46,7 @@ if errorlevel 1 (
     if errorlevel 1 (
         echo.
         echo ERROR: Failed to install dependencies
-        echo Please run: pip install -r requirements.txt
+        echo Please run manually: pip install -r requirements.txt
         pause
         exit /b 1
     )
